@@ -2,3 +2,6 @@ body {background-color: black;
       color: white;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Seoge UI', Roboto, sans-serif;
      }
+.tekst-srodek {
+  text-align: center;
+}
