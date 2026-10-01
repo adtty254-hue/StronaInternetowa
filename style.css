@@ -11,8 +11,8 @@ body {background-color: black;
       border-radius: 15px;
 }
 .navbar {
-  background-color: #1f1f1f;
-  padding: 10px 20px;
+  background-color: transparent;
+  padding: 10px 0;
   font-family: Arial, sans-serif;
 }
 .dropdown {
