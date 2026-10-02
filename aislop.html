@@ -1,0 +1,64 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <!-- Kontener na robota -->
+<div id="ascii-robot" style="
+  position: fixed;
+  bottom: 10px;
+  left: -100px;
+  font-family: monospace;
+  white-space: pre;
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+"></div>
+
+<script>
+  (function() {
+    // Ramki animacji chodu robota ASCII
+    const frames = [
+      " \\(' ')/ \n  /  \\ ",
+      " \\(' ')/ \n  |  | ",
+      " \\(' ')/ \n  \\  / ",
+      " \\(' ')/ \n  |  | "
+    ];
+
+    const robot = document.getElementById('ascii-robot');
+    let frameIndex = 0;
+    let posX = -100;
+    const speed = 1.5; // Prędkość poruszania się (px na krok)
+
+    function animate() {
+      // Pobieramy aktualną szerokość okna
+      const screenWidth = window.innerWidth;
+
+      // Przesuwamy robota w prawo
+      posX += speed;
+
+      // Jeśli robot wyjdzie poza prawą krawędź ekranu, wraca na lewą stronę
+      if (posX > screenWidth + 50) {
+        posX = -100;
+      }
+
+      // Aktualizacja pozycji i wyglądu
+      robot.style.left = posX + 'px';
+      
+      // Zmiana klatki animacji co określony dystans
+      if (Math.floor(posX / 10) % frames.length !== frameIndex) {
+        frameIndex = (frameIndex + 1) % frames.length;
+        robot.textContent = frames[frameIndex];
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Uruchomienie animacji
+    animate();
+  })();
+</script>
+  </body>
+</html>
