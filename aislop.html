@@ -1,64 +1,499 @@
-<html>
-  <head>
-  </head>
-  <body>
-    <!-- Kontener na robota -->
-<div id="ascii-robot" style="
-  position: fixed;
-  bottom: 10px;
-  left: -100px;
-  font-family: monospace;
-  white-space: pre;
-  font-weight: bold;
-  font-size: 14px;
-  color: #333;
-  z-index: 9999;
-  pointer-events: none;
-  user-select: none;
-"></div>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Slop Showcase - Pure Chaotic Art</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: #0d0e15;
+            color: #00ff66;
+            overflow-x: hidden;
+        }
 
-<script>
-  (function() {
-    // Ramki animacji chodu robota ASCII
-    const frames = [
-      " \\(' ')/ \n  /  \\ ",
-      " \\(' ')/ \n  |  | ",
-      " \\(' ')/ \n  \\  / ",
-      " \\(' ')/ \n  |  | "
-    ];
+        /* Scanline CRT effect */
+        .crt::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.6;
+        }
 
-    const robot = document.getElementById('ascii-robot');
-    let frameIndex = 0;
-    let posX = -100;
-    const speed = 1.5; // Prędkość poruszania się (px na krok)
+        /* Retro Glitch Animations */
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-3px, 3px) }
+            40% { transform: translate(-3px, -3px) }
+            60% { transform: translate(3px, 3px) }
+            80% { transform: translate(3px, -3px) }
+            100% { transform: translate(0) }
+        }
 
-    function animate() {
-      // Pobieramy aktualną szerokość okna
-      const screenWidth = window.innerWidth;
+        .glitch-hover:hover {
+            animation: glitch 0.2s infinite;
+        }
 
-      // Przesuwamy robota w prawo
-      posX += speed;
+        .neon-border {
+            box-shadow: 0 0 10px #00ff66, inset 0 0 10px #00ff66;
+        }
 
-      // Jeśli robot wyjdzie poza prawą krawędź ekranu, wraca na lewą stronę
-      if (posX > screenWidth + 50) {
-        posX = -100;
-      }
+        .neon-pink {
+            color: #ff007f;
+            text-shadow: 0 0 8px #ff007f;
+        }
 
-      // Aktualizacja pozycji i wyglądu
-      robot.style.left = posX + 'px';
-      
-      // Zmiana klatki animacji co określony dystans
-      if (Math.floor(posX / 10) % frames.length !== frameIndex) {
-        frameIndex = (frameIndex + 1) % frames.length;
-        robot.textContent = frames[frameIndex];
-      }
+        .neon-green {
+            color: #00ff66;
+            text-shadow: 0 0 8px #00ff66;
+        }
 
-      requestAnimationFrame(animate);
-    }
+        .neon-cyan {
+            color: #00f0ff;
+            text-shadow: 0 0 8px #00f0ff;
+        }
 
-    // Uruchomienie animacji
-    animate();
-  })();
-</script>
-  </body>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0e15;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ff66;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="crt min-h-screen flex flex-col justify-between select-none">
+
+    <!-- HEADER -->
+    <header class="p-4 border-b border-green-500/30 bg-black/40 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl animate-bounce">🤖</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-widest neon-green glitch-hover cursor-pointer" id="title-btn">
+                        AI_SLOP_GALLERY.v69
+                    </h1>
+                    <p class="text-xs text-gray-400">100% Unchecked Neural Garbage & Synthetic Entropy</p>
+                </div>
+            </div>
+            <div class="flex gap-2 text-xs">
+                <button onclick="spawnFloatingArtifact()" class="px-3 py-1.5 border border-pink-500 text-pink-400 hover:bg-pink-500/20 rounded glitch-hover transition">
+                    + Spawn Slop
+                </button>
+                <button onclick="toggleChaos()" class="px-3 py-1.5 border border-cyan-400 text-cyan-300 hover:bg-cyan-500/20 rounded glitch-hover transition">
+                    ⚡ Overclock GPU
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-6xl mx-auto p-4 md:p-6 w-full space-y-8 flex-1">
+
+        <!-- Top Stats Banner -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="border border-green-500/30 bg-black/50 p-4 rounded-xl">
+                <div class="text-xs text-gray-400">Hallucination Index</div>
+                <div class="text-2xl font-bold neon-pink mt-1" id="hallucination-val">99.8%</div>
+            </div>
+            <div class="border border-green-500/30 bg-black/50 p-4 rounded-xl">
+                <div class="text-xs text-gray-400">Generated Fingers/Hand</div>
+                <div class="text-2xl font-bold neon-cyan mt-1" id="fingers-val">7.4</div>
+            </div>
+            <div class="border border-green-500/30 bg-black/50 p-4 rounded-xl">
+                <div class="text-xs text-gray-400">Slop Rendered Today</div>
+                <div class="text-2xl font-bold neon-green mt-1" id="slop-count">1,337 TB</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- WIDGET 1: Slop Prompt Generator -->
+            <div class="border border-green-500/40 bg-black/60 p-5 rounded-xl flex flex-col justify-between hover:border-pink-500 transition">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-sm font-bold text-pink-400">1. Instant Prompt Generator</h2>
+                        <span class="text-xs px-2 py-0.5 bg-pink-950 text-pink-300 rounded border border-pink-700">v5.2</span>
+                    </div>
+                    <div id="prompt-box" class="bg-gray-950 p-3 rounded border border-gray-800 text-xs text-gray-300 min-h-[70px] flex items-center italic">
+                        "Hyperrealistic photorealistic cyberpunk Capybara wearing sunglasses holding 6-fingered coffee cup, 8k resolution, Unreal Engine 5 render, trending on ArtStation..."
+                    </div>
+                </div>
+                <button onclick="generatePrompt()" class="mt-4 w-full py-2 bg-pink-600/20 hover:bg-pink-600/40 border border-pink-500 text-pink-300 text-xs rounded transition font-bold">
+                    🎲 Generate Worse Prompt
+                </button>
+            </div>
+
+            <!-- WIDGET 2: Bouncing DVD ASCII Slop -->
+            <div class="border border-green-500/40 bg-black/60 p-5 rounded-xl flex flex-col justify-between hover:border-cyan-400 transition">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-bold text-cyan-400">2. Floating ASCII DVD Logo</h2>
+                        <span class="text-xs text-gray-500" id="dvd-hits">Bounces: 0</span>
+                    </div>
+                    <div id="dvd-box" class="relative bg-gray-950 h-32 rounded border border-gray-800 overflow-hidden">
+                        <div id="dvd-logo" class="absolute whitespace-pre text-[10px] leading-none text-cyan-400 font-bold select-none" style="left:10px; top:10px;">
+ (\\_/)
+( •_•)
+/ >💻
+                        </div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2 text-center">Watch it hit the corner (it won't).</p>
+            </div>
+
+            <!-- WIDGET 3: Dancing ASCII Cat -->
+            <div class="border border-green-500/40 bg-black/60 p-5 rounded-xl flex flex-col justify-between hover:border-green-400 transition">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-bold text-green-400">3. Neural Dance Cat</h2>
+                        <span class="text-xs text-green-500 animate-pulse">● LIVE</span>
+                    </div>
+                    <div class="bg-gray-950 p-3 rounded border border-gray-800 flex justify-center items-center h-32">
+                        <pre id="dancing-cat" class="text-xs leading-tight text-green-300 font-bold"></pre>
+                    </div>
+                </div>
+                <button onclick="toggleCatSpeed()" class="mt-4 w-full py-2 bg-green-600/20 hover:bg-green-600/40 border border-green-500 text-green-300 text-xs rounded transition font-bold">
+                    💃 Change Dance Rhythm
+                </button>
+            </div>
+
+            <!-- WIDGET 4: Text Degenerator (AI Glitchifier) -->
+            <div class="border border-green-500/40 bg-black/60 p-5 rounded-xl flex flex-col justify-between md:col-span-2 hover:border-purple-500 transition">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-bold text-purple-400">4. Neural Text Glitchifier (Zalgo / Slopifier)</h2>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="glitch-input" value="Wpisz cokolwiek tutaj..." oninput="updateGlitchText()" class="bg-gray-950 border border-gray-800 rounded p-2 text-xs text-green-400 focus:outline-none focus:border-purple-500">
+                        <div id="glitch-output" class="bg-gray-950 border border-gray-800 rounded p-2 text-xs text-purple-300 overflow-x-auto whitespace-nowrap flex items-center">
+                            W̶p̶i̶s̶z̶ ̶c̶o̶k̶o̶l̶w̶i̶e̶k̶...
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 flex justify-between text-[11px] text-gray-500">
+                    <span>Loss Rate: 99.4%</span>
+                    <span>Status: Overfitted</span>
+                </div>
+            </div>
+
+            <!-- WIDGET 5: ASCII Art Creator / Randomizer -->
+            <div class="border border-green-500/40 bg-black/60 p-5 rounded-xl flex flex-col justify-between hover:border-yellow-400 transition">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-bold text-yellow-400">5. 1-Bit AI Art Generator</h2>
+                    </div>
+                    <div class="bg-gray-950 p-2 rounded border border-gray-800 h-32 flex items-center justify-center overflow-hidden">
+                        <pre id="ascii-art-display" class="text-[9px] leading-none text-yellow-300 select-none"></pre>
+                    </div>
+                </div>
+                <button onclick="generateRandomAsciiArt()" class="mt-4 w-full py-2 bg-yellow-600/20 hover:bg-yellow-600/40 border border-yellow-500 text-yellow-300 text-xs rounded transition font-bold">
+                    🎨 Synthesize New Art
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ASCII AI Bot Playground Container -->
+        <div class="border border-green-500/50 bg-black/70 p-6 rounded-xl relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 border-b border-gray-800 pb-3">
+                <div>
+                    <h2 class="text-base font-bold text-green-400 flex items-center gap-2">
+                        <span>🧪</span> Interactive Slop Sandbox
+                    </h2>
+                    <p class="text-xs text-gray-400">Kliknij w dowolne miejsce, aby postawić przeszkodę lub zrzucić obiekt!</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="clearSandbox()" class="px-3 py-1 bg-red-900/40 border border-red-600 text-red-300 text-xs rounded hover:bg-red-800/50">
+                        Clear Playground
+                    </button>
+                </div>
+            </div>
+
+            <div id="sandbox-area" class="w-full h-48 bg-gray-950 rounded border border-gray-800 relative cursor-crosshair overflow-hidden">
+                <div class="absolute top-2 left-2 text-[10px] text-gray-600 pointer-events-none">
+                    [ SANDBOX ACTIVE - ROBOTS WILL SPAWN BELOW ]
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER WITH BOTTOM WALKING ROBOTS -->
+    <footer class="border-t border-green-500/30 bg-black/80 py-6 px-4 relative mt-12">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 mb-8">
+            <div>
+                Built with 💚 and zero artificial intelligence restraint.
+            </div>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-green-400">aislop.html</a>
+                <a href="#" onclick="alert('Błąd: Brak pamięci VRAM w Twojej wyobraźni.'); return false;" class="hover:text-pink-400">Report Hallucination</a>
+            </div>
+        </div>
+
+        <!-- Bottom Walking Robot Track -->
+        <div class="w-full h-12 border-t border-dashed border-green-800/50 relative overflow-hidden">
+            <div id="footer-robot-1" class="absolute bottom-1 font-mono text-xs font-bold text-green-400 whitespace-pre pointer-events-none"></div>
+            <div id="footer-robot-2" class="absolute bottom-1 font-mono text-xs font-bold text-pink-400 whitespace-pre pointer-events-none"></div>
+            <div id="footer-robot-3" class="absolute bottom-1 font-mono text-xs font-bold text-cyan-400 whitespace-pre pointer-events-none"></div>
+        </div>
+    </footer>
+
+    <script>
+        /* --- 1. PROMPT GENERATOR --- */
+        const subjects = ["Capybara", "Cyberpunk Cat", "Elon Musk emoji", "GigaChad", "Pepe the Frog", "Shrek", "Rubber Duck", "AI Waifu"];
+        const styles = ["hyperrealistic", "retro 80s synthwave", "PS1 hagrid graphics", "1-bit ASCII art", "unreal engine 5 render", "claymation"];
+        const details = ["wearing 3D glasses", "eating spaghetti", "holding a broken GPU", "crying in binary", "exploding into pixels", "with 12 fingers"];
+
+        function generatePrompt() {
+            const sub = subjects[Math.floor(Math.random() * subjects.length)];
+            const sty = styles[Math.floor(Math.random() * styles.length)];
+            const det = details[Math.floor(Math.random() * details.length)];
+            const prompt = `"${sub} ${det}, ${sty}, trending on ArtStation, 8k resolution, octane render, masterpiece, viral slop."`;
+            document.getElementById('prompt-box').innerText = prompt;
+        }
+
+        /* --- 2. BOUNCING DVD ASCII --- */
+        let dvdX = 10, dvdY = 10;
+        let dvdSpeedX = 1.2, dvdSpeedY = 1;
+        let dvdHits = 0;
+        const dvdLogo = document.getElementById('dvd-logo');
+        const dvdBox = document.getElementById('dvd-box');
+        const dvdColors = ['#00ff66', '#ff007f', '#00f0ff', '#ffff00', '#ff8800'];
+
+        function animateDVD() {
+            if (!dvdBox) return;
+            const maxX = dvdBox.clientWidth - dvdLogo.clientWidth;
+            const maxY = dvdBox.clientHeight - dvdLogo.clientHeight;
+
+            dvdX += dvdSpeedX;
+            dvdY += dvdSpeedY;
+
+            if (dvdX <= 0 || dvdX >= maxX) {
+                dvdSpeedX *= -1;
+                dvdHits++;
+                changeDVDColor();
+            }
+            if (dvdY <= 0 || dvdY >= maxY) {
+                dvdSpeedY *= -1;
+                dvdHits++;
+                changeDVDColor();
+            }
+
+            dvdLogo.style.left = `${Math.max(0, Math.min(dvdX, maxX))}px`;
+            dvdLogo.style.top = `${Math.max(0, Math.min(dvdY, maxY))}px`;
+            document.getElementById('dvd-hits').innerText = `Bounces: ${dvdHits}`;
+
+            requestAnimationFrame(animateDVD);
+        }
+
+        function changeDVDColor() {
+            const color = dvdColors[Math.floor(Math.random() * dvdColors.length)];
+            dvdLogo.style.color = color;
+        }
+
+        /* --- 3. DANCING ASCII CAT --- */
+        const catFrames = [
+            `
+ /\\_/\\  
+( o.o ) 
+ > ^ <  
+            `,
+            `
+ /\\_/\\  
+( -.- ) 
+ / ^ \\  
+            `,
+            `
+ /\\_/\\  
+( o.o ) 
+ / ^ \\  
+            `,
+            `
+ /\\_/\\  
+( >.< ) 
+ > ^ <  
+            `
+        ];
+        let catFrameIdx = 0;
+        let catSpeed = 300;
+        let catInterval;
+
+        function startCatDance() {
+            clearInterval(catInterval);
+            catInterval = setInterval(() => {
+                catFrameIdx = (catFrameIdx + 1) % catFrames.length;
+                document.getElementById('dancing-cat').textContent = catFrames[catFrameIdx];
+            }, catSpeed);
+        }
+
+        function toggleCatSpeed() {
+            catSpeed = catSpeed === 300 ? 100 : (catSpeed === 100 ? 600 : 300);
+            startCatDance();
+        }
+
+        /* --- 4. ZALGO / TEXT GLITCHIFIER --- */
+        function updateGlitchText() {
+            const input = document.getElementById('glitch-input').value;
+            const output = document.getElementById('glitch-output');
+            
+            if (!input) {
+                output.innerText = "...";
+                return;
+            }
+
+            const glitchChars = ['̸', '̶', '̵', '̴', '̲', '̳', '̷', '̵', '̚', '̕', '̔', '̋', '̃'];
+            let result = "";
+
+            for (let char of input) {
+                result += char;
+                if (Math.random() > 0.3) {
+                    const randomGlitch = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                    result += randomGlitch;
+                }
+            }
+            output.innerText = result;
+        }
+
+        /* --- 5. RANDOM ASCII ART GENERATOR --- */
+        const asciiArtTemplates = [
+            `   .---.
+  /     \\
+ | () () |
+  \\  ^  /
+   |||||
+  '-----'`,
+            `  [̲̅$̲̅(̲̅1̲̅0̲̅0̲̅)̲̅$̲̅]
+  (o.O)
+ (  _  )
+  "   "`,
+            `    /\\
+   /  \\
+  / [] \\
+ /______\\
+  |  _ |
+  | | ||`,
+            `  ▄▄▄▄▄
+ ▀▀▄.▄▀▀
+   ███
+  ◤███◥`
+        ];
+
+        function generateRandomAsciiArt() {
+            const display = document.getElementById('ascii-art-display');
+            const randomArt = asciiArtTemplates[Math.floor(Math.random() * asciiArtTemplates.length)];
+            display.textContent = randomArt;
+        }
+
+        /* --- 6. WALKING ROBOTS (BOTTOM & FOOTER) --- */
+        const robotFrames = [
+            [" \\(' ')/ \n  /  \\ ", " \\(' ')/ \n  |  | ", " \\(' ')/ \n  \\  / "],
+            [" [o_o] \n /|_|\\ \n /   \\", " [o_o] \n /|_|\\ \n  ||  ", " [o_o] \n /|_|\\ \n /   \\"],
+            [" (c_b) \n  /|\\  \n  / \\ ", " (c_b) \n  /|\\  \n  ||  ", " (c_b) \n  /|\\  \n  / \\ "]
+        ];
+
+        function setupWalkingRobot(elementId, frameSetIndex, speed, initialOffset) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            let posX = initialOffset;
+            let frameIdx = 0;
+            const frames = robotFrames[frameSetIndex];
+
+            function step() {
+                const screenWidth = window.innerWidth;
+                posX += speed;
+
+                if (posX > screenWidth + 50) {
+                    posX = -100;
+                }
+
+                el.style.left = posX + 'px';
+
+                if (Math.floor(posX / 12) % frames.length !== frameIdx) {
+                    frameIdx = (frameIdx + 1) % frames.length;
+                    el.textContent = frames[frameIdx];
+                }
+
+                requestAnimationFrame(step);
+            }
+            step();
+        }
+
+        /* --- 7. FLOATING RANDOM SLOP ARTIFACTS --- */
+        function spawnFloatingArtifact() {
+            const artifacts = ["\(' ')/", "[GPU OVERHEAT]", "ERROR 404", "01000001", "🤖", "👾", "🦙", "6 FINGERS", "HALLUCINATION"];
+            const art = document.createElement('div');
+            art.innerText = artifacts[Math.floor(Math.random() * artifacts.length)];
+            art.className = 'fixed text-xs font-bold pointer-events-none z-50 animate-bounce p-1 rounded bg-pink-900/80 text-pink-200 border border-pink-500';
+            
+            const startX = Math.random() * (window.innerWidth - 100);
+            const startY = Math.random() * (window.innerHeight - 100);
+
+            art.style.left = startX + 'px';
+            art.style.top = startY + 'px';
+
+            document.body.appendChild(art);
+
+            setTimeout(() => {
+                art.remove();
+            }, 4000);
+        }
+
+        function toggleChaos() {
+            document.body.style.filter = document.body.style.filter ? '' : 'hue-rotate(90deg) contrast(150%)';
+        }
+
+        /* --- 8. SANDBOX INTERACTIVITY --- */
+        const sandbox = document.getElementById('sandbox-area');
+        sandbox.addEventListener('click', (e) => {
+            const rect = sandbox.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const pop = document.createElement('div');
+            pop.innerText = ['👾', '💥', '⚠️', '🤖', '❓'][Math.floor(Math.random() * 5)];
+            pop.className = 'absolute text-sm font-mono font-bold select-none';
+            pop.style.left = (x - 10) + 'px';
+            pop.style.top = (y - 10) + 'px';
+
+            sandbox.appendChild(pop);
+        });
+
+        function clearSandbox() {
+            sandbox.innerHTML = '<div class="absolute top-2 left-2 text-[10px] text-gray-600 pointer-events-none">[ SANDBOX CLEARED ]</div>';
+        }
+
+        /* --- INITIALIZATION --- */
+        window.onload = function() {
+            animateDVD();
+            startCatDance();
+            generateRandomAsciiArt();
+            updateGlitchText();
+
+            // Start bottom walking robots
+            setupWalkingRobot('footer-robot-1', 0, 1.5, -50);
+            setupWalkingRobot('footer-robot-2', 1, 2.2, -300);
+            setupWalkingRobot('footer-robot-3', 2, 1.0, -600);
+
+            // Increment stats slightly for fluff
+            setInterval(() => {
+                const el = document.getElementById('slop-count');
+                let val = parseInt(el.innerText);
+                el.innerText = (val + Math.floor(Math.random() * 5 + 1)) + " TB";
+            }, 2000);
+        };
+    </script>
+</body>
 </html>
